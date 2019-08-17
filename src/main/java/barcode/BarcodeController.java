@@ -1,21 +1,24 @@
 package barcode;
 
 import com.onbarcode.barcode.AbstractBarcode;
+import control.Control;
+import photo.PhotosControl;
+
 
 import java.io.IOException;
 import java.util.Scanner;
 
-public class Controller {
+public class BarcodeController extends Control {
 
     private static Scanner scanner;
 
     public static void main(String[] args) {
 
-        Controller controller = new Controller();
+        BarcodeController controller = new BarcodeController();
         scanner = new Scanner(System.in);
 
         while (true) {
-            System.out.println(controller.makeColor("Wat do you want to do: \n 1 : Print Barcode \n 2 : Merge barcode \n 3 : Exit",Colors.WHITE));
+            System.out.println(controller.makeColor("\nWat do you want to do: \n 1 : Print Barcode \n 2 : Merge barcode \n 3 : Exit",Colors.WHITE));
             controller.printOptionMessage();
             switch (controller.inputTextValidation(scanner.next())) {
                 case 1:
@@ -27,7 +30,7 @@ public class Controller {
                     controller.manageBarcodeVisualisation(barcodeVisualisation);
                     break;
                 case 2:
-                    System.out.print("to Implement");
+                    new PhotosControl(scanner);
                     break;
                 case 3:
                     System.out.println(controller.makeColor("Bye!",Colors.BLUE));
@@ -166,7 +169,6 @@ public class Controller {
 
     private void percentageVisualization(int currentValue, int expectedValue){
         System.out.print("\r"+makeColor(String.format("Progress : %3.2f",((double)currentValue/(double)expectedValue)*100)+"%",Colors.BLUE));
-
     }
     private void changeSettings(BarcodeVisualisation barcodeVisualisation) {
         while (true) {
@@ -226,10 +228,6 @@ public class Controller {
     }
 
 
-    private String makeColor(String data, Colors color) {
-        return color.makeColor(color, data, true);
-    }
-
     private void availableFormatInfo(BarcodeVisualisation barcodeVisualisation) {
 
         System.out.println(makeColor("\n Choose saving format:  1 : .GIF \n 2 : .JPEG \n 3 : .PNG \n 4 : .EPS \n",Colors.WHITE));
@@ -264,16 +262,6 @@ public class Controller {
             System.out.println(makeColor("Setting can't be save correct", Colors.RED));
             ex.printStackTrace();
         }
-    }
-
-
-    private void printDoneWork() {
-        System.out.println(makeColor("Done\n", Colors.GREEN));
-    }
-
-    private void printOptionMessage(){
-        String message = "Your choose : ";
-        System.out.print(makeColor(message,Colors.PINK));
     }
 
     private void printNewValueMessage(){

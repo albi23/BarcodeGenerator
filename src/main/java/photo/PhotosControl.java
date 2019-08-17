@@ -1,15 +1,19 @@
 package photo;
 
+import barcode.Colors;
+import control.Control;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
+import java.lang.reflect.Array;
+import java.util.*;
 import java.util.List;
 
-public class PhotosControl {
+public class PhotosControl extends Control {
 
     private static final int A3_WIDTH = 842;
     private static final int A3_HEIGHT = 1191;
@@ -17,17 +21,20 @@ public class PhotosControl {
     private static final int A4_HEIGHT = 595;
     private static final int A5_WIDTH = 420;
     private static final int A5_HEIGHT = 595;
+    private Scanner scanner;
 
 
-
-
+    public PhotosControl(Scanner scanner) {
+        this.scanner = scanner;
+        managePhotos();
+    }
 
     private void mergePhotos() {
         File folder = new File("target/");
         List<File> listOfFiles = Arrays.asList(folder.listFiles());
 
         Collections.sort(listOfFiles);
-        for (File file: listOfFiles) {
+        for (File file : listOfFiles) {
             System.out.println(file.getName());
         }
         boolean nextTo = false;
@@ -86,4 +93,125 @@ public class PhotosControl {
         ImageIO.write(combined, "PNG", new File(pathToImages, nameFile));
     }
 
+    private void showAvailableFormatsToMerge() {
+        System.out.println(makeColor("\n Choose merge format:  1 : .GIF \n 2 : .JPG \n 3 : .PNG \n", Colors.WHITE));
+
+    }// /home/albert/IdeaProjects/Barcode/target
+
+    private void managePhotos() {
+        while (true) {
+            System.out.println(makeColor("\n 1 : Choose path with images \n 2 : Back", Colors.WHITE));
+            printOptionMessage();
+            switch (scanner.nextInt()) {
+                case 1: {
+                    System.out.print(makeColor("Enter the path to the photos : ", Colors.PINK));
+                    List<File> files = collectFile(validateInputPath(scanner.next()));
+                    if (files != null) {
+                        printImageChooseMessage();
+                        validateChoosedImages(scanner.next());
+                    }
+                    break;
+                }
+                case 2:
+                    return;
+            }
+        }
+    }
+
+
+    private File[] validateInputPath(String path) {
+        File[] nameFiles = {};
+        try {
+            File newFile = new File(path);
+            nameFiles = newFile.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.matches(".*(.gif|.jpg|.png)");
+                }
+            });
+
+        } catch (Exception e) {
+            System.out.println(makeColor("Entered path is incorrect.", Colors.RED));
+        }
+        return nameFiles;
+    }
+
+    private List<File> collectFile(File[] files) {
+        if (files == null || files.length == 0) {
+            System.out.println(makeColor("Entered path is not contains any photo.", Colors.RED));
+            return null;
+        }
+
+        List<File> fileArray = Arrays.asList(files);
+        printAllFiles(fileArray);
+        return fileArray;
+    }
+
+    private void printAllFiles(List<File> files) {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        int maxNumber = Integer.toString(files.size()).length();
+        int maxName = findLongestName(files);
+
+        for (int i = 0, j = 4; i < files.size(); i++) {
+            stringBuilder.append(String.format("%" + maxNumber + "d. ", i + 1)).append(String.format("%-" + maxName + "s", files.get(i).getName())).append(" ");
+            if (i == j) {
+                stringBuilder.append("\n");
+                j += 5;
+            }
+        }
+        System.out.println(makeColor(stringBuilder.toString(), Colors.BLUE));
+    }
+
+    private int findLongestName(List<File> files) {
+        int longestName = 0;
+        for (File file : files)
+            if (file.getName().length() > longestName) longestName = file.getName().length();
+
+        return longestName;
+    }
+
+    private void printImageChooseMessage() {
+        System.out.println(makeColor("\nChose which image will be merged.\n" +
+                "You can choose only numbers e.g. 1, 15, 30 etc. or range  e.g. 1-5, 17-28 ", Colors.YELLOW));
+    }
+
+    //choosed
+    private boolean validateChoosedImages(String input) {
+        String[] inputData = input.trim().split(",");
+        for (String s : inputData) {
+            if (!s.contains("-")) {
+                try {
+                    System.out.println(Integer.parseInt(s));
+                }catch (NumberFormatException ex){}
+            } else {
+                System.out.println(s);
+            }
+        }
+        return true;
+    }
+
+    private void fillWithComma(String s){
+        StringBuilder builder = new StringBuilder();
+        int start;
+        for (start = 0; start < s.length(); start++)
+            if (s.charAt(start) > 47 && s.charAt(start) <= 57) break;
+
+        builder.append(s.charAt(start));
+
+        for (int i = start+1; i < s.length(); i++) {
+            if ((s.charAt(i) > 47 && s.charAt(i) <= 57)){ // jeśli jest cyfrą
+                builder.append(s.charAt(i)); // dodaj tą cyfre
+                // ttuaj jeśli następny znak nie jest cyfrą to przecinek albo myślink
+                for (int j = i+1; j < s.length(); j++) {
+                    if ((s.charAt(j) > 47 && s.charAt(j) <= 57) || s.charAt(j)  == 4){
+
+                    }
+                    i++;
+                }
+            }else if (s.charAt(i) == 44 ){
+                builder.append('-');
+            }
+        }
+    }
 }
