@@ -1,6 +1,7 @@
 package photo;
 
 import barcode.Colors;
+import com.sun.deploy.security.SelectableSecurityManager;
 import control.Control;
 
 import javax.imageio.ImageIO;
@@ -108,7 +109,11 @@ public class PhotosControl extends Control {
                     List<File> files = collectFile(validateInputPath(scanner.next()));
                     if (files != null) {
                         printImageChooseMessage();
-                        validateChoosedImages(scanner.next());
+                        try {
+                            validateChoosedImages(scanner.next(), files.size(),scanner.nextLine());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                     break;
                 }
@@ -175,43 +180,54 @@ public class PhotosControl extends Control {
         System.out.println(makeColor("\nChose which image will be merged.\n" +
                 "You can choose only numbers e.g. 1, 15, 30 etc. or range  e.g. 1-5, 17-28 ", Colors.YELLOW));
     }
-
+//System.out.println(makeColor("Entered data contains mistakes", Colors.RED));
     //choosed
-    private boolean validateChoosedImages(String input) {
-        String[] inputData = input.trim().split(",");
-        for (String s : inputData) {
-            if (!s.contains("-")) {
-                try {
-                    System.out.println(Integer.parseInt(s));
-                }catch (NumberFormatException ex){}
-            } else {
-                System.out.println(s);
-            }
+    private boolean validateChoosedImages(String input,int max, String ...args) throws Exception{
+        StringBuilder builder = new StringBuilder();
+        if (args != null){
+            for (String s: args) builder.append(s);
         }
+        builder.insert(0,input);
+
+        String[] inputData = fillWithComma(builder.toString()).split(",");
+
+        HashSet<Integer> validated = new LinkedHashSet<>();
+        Arrays.stream(inputData).forEach(string -> {
+            if (string.contains("-")) {
+                String[] res = string.split("-");
+                for (int i = Integer.parseInt(res[0]); i < Integer.parseInt(res[1]); i++) {
+                    if (i > max) return false;
+                        else validated.add(i);
+                }
+            } else {
+                validated.add(Integer.parseInt(string));
+            }
+        });
         return true;
     }
 
-    private void fillWithComma(String s){
-        StringBuilder builder = new StringBuilder();
-        int start;
-        for (start = 0; start < s.length(); start++)
-            if (s.charAt(start) > 47 && s.charAt(start) <= 57) break;
+    private String fillWithComma(String s) {
+        StringBuilder builder = new StringBuilder(" ");
+        boolean markComma = false;
+        char last = ' ';
 
-        builder.append(s.charAt(start));
+        for (int i = 0; i < s.length(); i++) {
+            if ((s.charAt(i) > 47 && s.charAt(i) <= 57)) { // is number
+                last = builder.substring(builder.length() - 1).charAt(0);
 
-        for (int i = start+1; i < s.length(); i++) {
-            if ((s.charAt(i) > 47 && s.charAt(i) <= 57)){ // jeśli jest cyfrą
-                builder.append(s.charAt(i)); // dodaj tą cyfre
-                // ttuaj jeśli następny znak nie jest cyfrą to przecinek albo myślink
-                for (int j = i+1; j < s.length(); j++) {
-                    if ((s.charAt(j) > 47 && s.charAt(j) <= 57) || s.charAt(j)  == 4){
-
-                    }
-                    i++;
+                if (last > 47 && last <= 57 && markComma) { // space between number = ','
+                    builder.append(",").append(s.charAt(i));
+                } else {
+                    builder.append(s.charAt(i));
                 }
-            }else if (s.charAt(i) == 44 ){
+                markComma = false;
+            } else if (s.charAt(i) == 45) {
                 builder.append('-');
+                markComma = false;
+            } else {
+                markComma = true;
             }
         }
+        return builder.toString().substring(1);
     }
 }
