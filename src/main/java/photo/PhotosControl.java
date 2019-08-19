@@ -23,6 +23,7 @@ public class PhotosControl extends Control {
     private static final int A5_WIDTH = 420;
     private static final int A5_HEIGHT = 595;
     private Scanner scanner;
+    private HashSet<Integer> validated;
 
 
     public PhotosControl(Scanner scanner) {
@@ -110,9 +111,11 @@ public class PhotosControl extends Control {
                     if (files != null) {
                         printImageChooseMessage();
                         try {
-                            validateChoosedImages(scanner.next(), files.size(),scanner.nextLine());
+                            validateChoosedImages(scanner.next(), files.size(), scanner.nextLine());
                         } catch (Exception e) {
                             e.printStackTrace();
+                            System.out.print(makeColor("You have entered wrong data",Colors.RED));
+                            break;
                         }
                     }
                     break;
@@ -180,29 +183,30 @@ public class PhotosControl extends Control {
         System.out.println(makeColor("\nChose which image will be merged.\n" +
                 "You can choose only numbers e.g. 1, 15, 30 etc. or range  e.g. 1-5, 17-28 ", Colors.YELLOW));
     }
-//System.out.println(makeColor("Entered data contains mistakes", Colors.RED));
+
+    //System.out.println(makeColor("Entered data contains mistakes", Colors.RED));
     //choosed
-    private boolean validateChoosedImages(String input,int max, String ...args) throws Exception{
+    private boolean validateChoosedImages(String input, int max, String... args) throws Exception {
         StringBuilder builder = new StringBuilder();
-        if (args != null){
-            for (String s: args) builder.append(s);
-        }
-        builder.insert(0,input);
+        if (args != null)
+            for (String s : args) builder.append(s);
 
+        builder.insert(0, input);
         String[] inputData = fillWithComma(builder.toString()).split(",");
+        validated = new LinkedHashSet<>();
 
-        HashSet<Integer> validated = new LinkedHashSet<>();
-        Arrays.stream(inputData).forEach(string -> {
-            if (string.contains("-")) {
-                String[] res = string.split("-");
+        for (String s : inputData) {
+            if (s.contains("-")) {
+                String[] res = s.split("-");
                 for (int i = Integer.parseInt(res[0]); i < Integer.parseInt(res[1]); i++) {
                     if (i > max) return false;
-                        else validated.add(i);
+                    else validated.add(i);
                 }
             } else {
-                validated.add(Integer.parseInt(string));
+                validated.add(Integer.parseInt(s));
             }
-        });
+        }
+
         return true;
     }
 
