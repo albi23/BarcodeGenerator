@@ -15,6 +15,7 @@ public class Control implements IControl {
     public String makeColor(String data, Colors color) {
         return color.makeColor(color, data, true);
     }
+
     public void printOptionMessage(){
         String message = "Your choose : ";
         System.out.print(makeColor(message,Colors.PINK));

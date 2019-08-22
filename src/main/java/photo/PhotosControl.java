@@ -1,8 +1,10 @@
 package photo;
 
 import barcode.Colors;
+import barcode.PrintSize;
 import com.sun.deploy.security.SelectableSecurityManager;
 import control.Control;
+import sun.awt.X11.XSystemTrayPeer;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -13,16 +15,12 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class PhotosControl extends Control {
 
-    private static final int A3_WIDTH = 842;
-    private static final int A3_HEIGHT = 1191;
-    private static final int A4_WIDTH = 842;
-    private static final int A4_HEIGHT = 595;
-    private static final int A5_WIDTH = 420;
-    private static final int A5_HEIGHT = 595;
     private Scanner scanner;
+    private String path;
     private HashSet<Integer> validated;
 
 
@@ -42,11 +40,6 @@ public class PhotosControl extends Control {
         boolean nextTo = false;
         assert listOfFiles != null;
         for (int i = 1; i < listOfFiles.size(); i++) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             try {
                 mergeImages(listOfFiles.get(0).getName(), listOfFiles.get(i).getName(), "target/", listOfFiles.get(0).getName(), nextTo);
             } catch (IOException e) {
@@ -95,11 +88,6 @@ public class PhotosControl extends Control {
         ImageIO.write(combined, "PNG", new File(pathToImages, nameFile));
     }
 
-    private void showAvailableFormatsToMerge() {
-        System.out.println(makeColor("\n Choose merge format:  1 : .GIF \n 2 : .JPG \n 3 : .PNG \n", Colors.WHITE));
-
-    }// /home/albert/IdeaProjects/Barcode/target
-
     private void managePhotos() {
         while (true) {
             System.out.println(makeColor("\n 1 : Choose path with images \n 2 : Back", Colors.WHITE));
@@ -107,16 +95,13 @@ public class PhotosControl extends Control {
             switch (scanner.nextInt()) {
                 case 1: {
                     System.out.print(makeColor("Enter the path to the photos : ", Colors.PINK));
-                    List<File> files = collectFile(validateInputPath(scanner.next()));
+                    path = scanner.next();
+                    List<File> files = collectFile(validateInputPath());
                     if (files != null) {
                         printImageChooseMessage();
-                        try {
-                            validateChoosedImages(scanner.next(), files.size(), scanner.nextLine());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            System.out.print(makeColor("You have entered wrong data",Colors.RED));
-                            break;
-                        }
+                        validateChoosedImages(scanner.next(), files.size(), scanner.nextLine());
+
+                        showOptions(files);
                     }
                     break;
                 }
@@ -127,7 +112,7 @@ public class PhotosControl extends Control {
     }
 
 
-    private File[] validateInputPath(String path) {
+    private File[] validateInputPath() {
         File[] nameFiles = {};
         try {
             File newFile = new File(path);
@@ -184,9 +169,8 @@ public class PhotosControl extends Control {
                 "You can choose only numbers e.g. 1, 15, 30 etc. or range  e.g. 1-5, 17-28 ", Colors.YELLOW));
     }
 
-    //System.out.println(makeColor("Entered data contains mistakes", Colors.RED));
-    //choosed
-    private boolean validateChoosedImages(String input, int max, String... args) throws Exception {
+
+    private boolean validateChoosedImages(String input, int max, String... args) {
         StringBuilder builder = new StringBuilder();
         if (args != null)
             for (String s : args) builder.append(s);
@@ -198,7 +182,7 @@ public class PhotosControl extends Control {
         for (String s : inputData) {
             if (s.contains("-")) {
                 String[] res = s.split("-");
-                for (int i = Integer.parseInt(res[0]); i < Integer.parseInt(res[1]); i++) {
+                for (int i = Integer.parseInt(res[0]); i <= Integer.parseInt(res[1]); i++) {
                     if (i > max) return false;
                     else validated.add(i);
                 }
@@ -233,5 +217,54 @@ public class PhotosControl extends Control {
             }
         }
         return builder.toString().substring(1);
+    }
+
+    private void showOptions(List<File> files) {
+        List<String> filesNames = getFilesNames(files);
+        String outputFormat =  chooseOutputFormat();
+        PrintSize outputSize =  chooseOutputSize();
+
+    }
+
+    private String chooseOutputFormat(){
+        System.out.println(makeColor("\n Choose merge format:  1 : .GIF \n 2 : .JPG \n 3 : .PNG \n", Colors.WHITE));
+        while (true) {
+            switch (scanner.nextInt()) {
+                case 1:
+                    return "GIF";
+                case 2:
+                    return "JPG";
+                case 3:
+                    return "PNG";
+                default:{
+                    System.out.println(makeColor("Choose correct answer", Colors.RED));
+                }
+            }
+        }
+    }
+
+    private PrintSize chooseOutputSize(){
+        System.out.println(makeColor("\n Choose output size:  1 : A3 \n 2 : A4 \n 3 : A5 \n", Colors.WHITE));
+        while (true) {
+            switch (scanner.nextInt()) {
+                case 1:
+                    return PrintSize.A3;
+                case 2:
+                    return PrintSize.A4;
+                case 3:
+                    return PrintSize.A5;
+                default:{
+                    System.out.println(makeColor("Choose correct answer", Colors.RED));
+                }
+            }
+        }
+    }
+
+    private List<String> getFilesNames(List<File> files){
+        List<String> fileNAme = new ArrayList<>();
+        List<Integer> filesId = new ArrayList<>(validated);
+        Collections.sort(filesId);
+        filesId.forEach(i -> {fileNAme.add(files.get(i).getName());});
+        return fileNAme;
     }
 }
