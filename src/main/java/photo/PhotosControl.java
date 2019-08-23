@@ -29,37 +29,16 @@ public class PhotosControl extends Control {
         managePhotos();
     }
 
-    private void mergePhotos() {
-        File folder = new File("target/");
-        List<File> listOfFiles = Arrays.asList(folder.listFiles());
-
-        Collections.sort(listOfFiles);
-        for (File file : listOfFiles) {
-            System.out.println(file.getName());
-        }
-        boolean nextTo = false;
-        assert listOfFiles != null;
-        for (int i = 1; i < listOfFiles.size(); i++) {
+    private void mergePhotos(List<String> filesName, String outputFormat, PrintSize size) {
+        for (int i = 1; i < filesName.size(); i++) {
             try {
-                mergeImages(listOfFiles.get(0).getName(), listOfFiles.get(i).getName(), "target/", listOfFiles.get(0).getName(), nextTo);
+                BufferedImage image = ImageIO.read(new File(path, filesName.get(i)));
+                BufferedImage overlay = ImageIO.read(new File(path, filesName.get(i)));
+                mergeImages(image, overlay, false, path, "merged");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    private void mergeImages(String firstPhotoName, String secondPhotoName, String pathToImages, String resultName) throws IOException {
-        mergeImages(firstPhotoName, secondPhotoName, pathToImages, resultName, false);
-    }
-
-    private void mergeImages(String firstPhotoName, String secondPhotoName, String pathToImages) throws IOException {
-        mergeImages(firstPhotoName, secondPhotoName, pathToImages, null, false);
-    }
-
-    private void mergeImages(String firstPhotoName, String secondPhotoName, String pathToImages, String resultName, boolean mergeNexTo) throws IOException {
-        BufferedImage image = ImageIO.read(new File(pathToImages, firstPhotoName));
-        BufferedImage overlay = ImageIO.read(new File(pathToImages, secondPhotoName));
-        mergeImages(image, overlay, mergeNexTo, pathToImages, resultName);
     }
 
     private void mergeImages(BufferedImage firstImage, BufferedImage secondImage, boolean mergeNexTo, String pathToImages, String resultName) throws IOException {
@@ -221,12 +200,13 @@ public class PhotosControl extends Control {
 
     private void showOptions(List<File> files) {
         List<String> filesNames = getFilesNames(files);
-        String outputFormat =  chooseOutputFormat();
-        PrintSize outputSize =  chooseOutputSize();
+        String outputFormat = chooseOutputFormat();
+        PrintSize outputSize = chooseOutputSize();
+        mergePhotos(filesNames, outputFormat, outputSize);
 
     }
 
-    private String chooseOutputFormat(){
+    private String chooseOutputFormat() {
         System.out.println(makeColor("\n Choose merge format:  1 : .GIF \n 2 : .JPG \n 3 : .PNG \n", Colors.WHITE));
         while (true) {
             switch (scanner.nextInt()) {
@@ -236,14 +216,14 @@ public class PhotosControl extends Control {
                     return "JPG";
                 case 3:
                     return "PNG";
-                default:{
+                default: {
                     System.out.println(makeColor("Choose correct answer", Colors.RED));
                 }
             }
         }
     }
 
-    private PrintSize chooseOutputSize(){
+    private PrintSize chooseOutputSize() {
         System.out.println(makeColor("\n Choose output size:  1 : A3 \n 2 : A4 \n 3 : A5 \n", Colors.WHITE));
         while (true) {
             switch (scanner.nextInt()) {
@@ -253,18 +233,20 @@ public class PhotosControl extends Control {
                     return PrintSize.A4;
                 case 3:
                     return PrintSize.A5;
-                default:{
+                default: {
                     System.out.println(makeColor("Choose correct answer", Colors.RED));
                 }
             }
         }
     }
 
-    private List<String> getFilesNames(List<File> files){
+    private List<String> getFilesNames(List<File> files) {
         List<String> fileNAme = new ArrayList<>();
         List<Integer> filesId = new ArrayList<>(validated);
         Collections.sort(filesId);
-        filesId.forEach(i -> {fileNAme.add(files.get(i).getName());});
+        filesId.forEach(i -> {
+            fileNAme.add(files.get(i).getName());
+        });
         return fileNAme;
     }
 }

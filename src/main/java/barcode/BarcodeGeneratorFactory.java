@@ -18,15 +18,3 @@ public class BarcodeGeneratorFactory {
         return null;
     }
 }
-
-
-/*
-Jaki barcode
-Jaki format
-Jaki rozmiar
-Ile barcodów
-Od jakiego do jakiego numeru
-Uidu ?
-Randomowe ?
-Jaki typ Barcodu ?
- */

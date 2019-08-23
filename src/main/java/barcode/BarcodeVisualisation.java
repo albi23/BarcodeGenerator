@@ -161,22 +161,4 @@ public class BarcodeVisualisation  {
         this.abstractBarcode.setRightMargin(settings.getrMargin());
         return true;
     }
-/*          Code aa = new Cod
-            Code128 barcode = new Code128();
-            barcode.setData(suffix + data);
-            barcode.setX(2);
-            barcode.setY(60);
-            barcode.setBarcodeWidth(290);
-            barcode.setBarcodeHeight(100);
-
-            barcode.setLeftMargin(0);
-            barcode.setRightMargin(0);
-            barcode.drawBarcode("target/" + suffix + data + ".png");
-
-            barcode.setShowText(true);
-            barcode.setTextFont(new Font("Arial", Font.BOLD, 18));
-            barcode.setTextMargin(8);
-     */
-
-
 }
