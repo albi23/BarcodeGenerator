@@ -10,7 +10,7 @@ public enum PrintSize {
     private static final int A5_WIDTH = 420;
     private static final int A5_HEIGHT = 595;
 
-    public int getWidth(PrintSize size){
+    public static int getWidth(PrintSize size){
         switch (size){
             case A3:
                 return A3_WIDTH;
@@ -22,7 +22,7 @@ public enum PrintSize {
         return 0;
     }
 
-    public int getHeight(PrintSize size){
+    public static int getHeight(PrintSize size){
         switch (size){
             case A3:
                 return A3_HEIGHT;

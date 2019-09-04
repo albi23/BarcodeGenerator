@@ -2,9 +2,7 @@ package photo;
 
 import barcode.Colors;
 import barcode.PrintSize;
-import com.sun.deploy.security.SelectableSecurityManager;
 import control.Control;
-import sun.awt.X11.XSystemTrayPeer;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -12,10 +10,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.*;
+import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.*;
 
 public class PhotosControl extends Control {
 
@@ -30,17 +27,74 @@ public class PhotosControl extends Control {
     }
 
     private void mergePhotos(List<String> filesName, String outputFormat, PrintSize size) {
-        for (int i = 1; i < filesName.size(); i++) {
+
+//        BufferedImage outImage = new BufferedImage(PrintSize.getWidth(size), PrintSize.getHeight(size), BufferedImage.TYPE_INT_ARGB);
+        String firstImgName = filesName.get(0);
+        int currentWidth, currentHeight;
+        for (int i = 0; i < filesName.size(); i++) {
             try {
-                BufferedImage image = ImageIO.read(new File(path, filesName.get(i)));
-                BufferedImage overlay = ImageIO.read(new File(path, filesName.get(i)));
-                mergeImages(image, overlay, false, path, "merged");
+                BufferedImage overlay = null;
+                BufferedImage image = (i == 0) ? ImageIO.read(new File(path, firstImgName)) : ImageIO.read(new File(path, "merged" + outputFormat));
+                if (i + 1 < filesName.size()) overlay = ImageIO.read(new File(path, filesName.get(i+1)));
+                if (overlay != null) {
+                    currentHeight = image.getHeight() + overlay.getHeight();
+                    if (currentHeight > PrintSize.getHeight(size))
+                    mergeImages(image, overlay, false, path, "merged" + outputFormat);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
+    private void connectPhoto(List<String> filesName, String outputFormat, PrintSize size){
+
+        int selectedWidth = PrintSize.getWidth(size);
+        int selectedHeight = PrintSize.getHeight(size);
+        int currentWidth = 0, currentHeight = 0, imgCounter = 0, maxWidth = 0;
+        boolean printed = false;
+
+        SimpleDateFormat formatter = new SimpleDateFormat("hh:mm:ss.SSS");
+        BufferedImage outputImg = new BufferedImage(selectedWidth, selectedHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D outputImgGraphics = (Graphics2D) outputImg.getGraphics();
+        try {
+            while (imgCounter < filesName.size()) {
+
+                BufferedImage image = ImageIO.read(new File(path, filesName.get(imgCounter)));
+                if (image.getWidth() > selectedWidth || image.getHeight() > selectedHeight){
+                    System.out.println(makeColor("Size of "+filesName.get(imgCounter)+" is to big for selected format "+size.toString(), Colors.RED));
+                    imgCounter++;
+                    continue;
+                }
+                if (currentHeight + image.getHeight() > selectedHeight) {
+                    maxWidth = currentWidth + maxWidth;
+                    currentHeight = 0;
+                }
+                if (currentHeight + image.getHeight() <= selectedHeight && maxWidth + image.getWidth() <= selectedWidth) {
+                    outputImgGraphics.drawImage(image, maxWidth, currentHeight, null);
+                }  else {
+                    if (maxWidth + image.getWidth() > selectedWidth) {
+                        outputImgGraphics.dispose();
+                        ImageIO.write(outputImg, outputFormat.substring(1).toUpperCase(), new File(path, "Merged_" + size.toString() + "_" + formatter.format(new Date()) + outputFormat));
+                        outputImg = new BufferedImage(selectedWidth, selectedHeight, BufferedImage.TYPE_INT_ARGB);
+                        outputImgGraphics = (Graphics2D)outputImg.getGraphics();
+                        currentHeight = currentWidth = maxWidth = 0;
+                        printed = true;
+                    }
+                    outputImgGraphics.drawImage(image, maxWidth, currentHeight, null);
+                }
+                currentHeight += image.getHeight();
+                currentWidth = Math.max(image.getWidth(), currentWidth);
+                imgCounter++;
+                if (imgCounter == filesName.size() && !printed) {
+                    ImageIO.write(outputImg, outputFormat.substring(1).toUpperCase(), new File(path, "Merged_"  + size.toString() + "_"+ formatter.format(new Date()) + outputFormat));
+                }
+                printed = false;
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
     private void mergeImages(BufferedImage firstImage, BufferedImage secondImage, boolean mergeNexTo, String pathToImages, String resultName) throws IOException {
         int newWidth, newHeight;
         if (mergeNexTo) {
@@ -66,6 +120,7 @@ public class PhotosControl extends Control {
         String nameFile = (resultName != null) ? resultName : "Merged_" + System.currentTimeMillis() + ".png";
         ImageIO.write(combined, "PNG", new File(pathToImages, nameFile));
     }
+
 
     private void managePhotos() {
         while (true) {
@@ -202,20 +257,20 @@ public class PhotosControl extends Control {
         List<String> filesNames = getFilesNames(files);
         String outputFormat = chooseOutputFormat();
         PrintSize outputSize = chooseOutputSize();
-        mergePhotos(filesNames, outputFormat, outputSize);
+        connectPhoto(filesNames, outputFormat, outputSize);
 
     }
 
     private String chooseOutputFormat() {
-        System.out.println(makeColor("\n Choose merge format:  1 : .GIF \n 2 : .JPG \n 3 : .PNG \n", Colors.WHITE));
+        System.out.println(makeColor("\n Choose merge format: \n 1 : .GIF \n 2 : .JPG \n 3 : .PNG \n", Colors.WHITE));
         while (true) {
             switch (scanner.nextInt()) {
                 case 1:
-                    return "GIF";
+                    return ".gif";
                 case 2:
-                    return "JPG";
+                    return ".jpg";
                 case 3:
-                    return "PNG";
+                    return ".png";
                 default: {
                     System.out.println(makeColor("Choose correct answer", Colors.RED));
                 }
@@ -224,7 +279,7 @@ public class PhotosControl extends Control {
     }
 
     private PrintSize chooseOutputSize() {
-        System.out.println(makeColor("\n Choose output size:  1 : A3 \n 2 : A4 \n 3 : A5 \n", Colors.WHITE));
+        System.out.println(makeColor("\n Choose output size: \n 1 : A3 \n 2 : A4 \n 3 : A5 \n", Colors.WHITE));
         while (true) {
             switch (scanner.nextInt()) {
                 case 1:
@@ -245,7 +300,7 @@ public class PhotosControl extends Control {
         List<Integer> filesId = new ArrayList<>(validated);
         Collections.sort(filesId);
         filesId.forEach(i -> {
-            fileNAme.add(files.get(i).getName());
+            fileNAme.add(files.get(i-1).getName());
         });
         return fileNAme;
     }
