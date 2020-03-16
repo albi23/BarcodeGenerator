@@ -11,4 +11,17 @@ The program that produces bar codes:
 - PDF417
 - DataMatrix
 
-Some screens : 
+
+# Some screens
+
+- Menu
+
+<p align="center"><img src="https://github.com/albi23/BarcodeGenerator/blob/master/screens/menu.png"></p>
+
+- Example barcode
+
+<p align="center"><img src="https://github.com/albi23/BarcodeGenerator/blob/master/screens/ex_barcode.png"></p>
+
+- Merge process 
+
+<p align="center"><img src="https://github.com/albi23/BarcodeGenerator/blob/master/screens/merge.png"></p>
