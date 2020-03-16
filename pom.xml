@@ -7,7 +7,24 @@
     <groupId>albert.piekielny</groupId>
     <artifactId>Barcode</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <inceptionYear>2019</inceptionYear>
+    <developers>
+        <developer>
+            <name>Albert Piekielny</name>
+            <email>albert.piekielny@blue-veery.com</email>
+            <organization>blue veery GmbH</organization>
+            <organizationUrl>https://github.com/blue-veery-gmbh</organizationUrl>
+        </developer>
+    </developers>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.barcode</groupId>
+            <systemPath>${project.basedir}/lib/barcode.jar</systemPath>
+            <artifactId>barcode-lib</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
